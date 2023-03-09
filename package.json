@@ -1,0 +1,28 @@
+{
+  "name": "disstat",
+  "version": "0.1.0",
+  "description": "This package allows you to automatically post bot stats and other data to DisStat",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test",
+    "link": "npx eslint . --report-unused-disable-directives"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DEVTomatoCake/DisStat-npm.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discordbot",
+    "statcord",
+    "disstat",
+    "autopost"
+  ],
+  "author": "TomatoCake",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DEVTomatoCake/DisStat-npm/issues"
+  },
+  "homepage": "https://github.com/DEVTomatoCake/DisStat-npm#readme"
+}
