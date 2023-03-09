@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    name: Run lib tests
+    name: Run jest
     runs-on: ubuntu-latest
     steps:
       - name: "☁️ checkout repository"
@@ -18,5 +18,5 @@ jobs:
           node-version: 18
           cache: "npm"
 
-      - name: "🔍 lint code"
+      - name: "🔍 run tests"
         run: npm test
