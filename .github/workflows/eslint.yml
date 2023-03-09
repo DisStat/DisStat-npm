@@ -6,7 +6,7 @@ on:
 
 jobs:
   lint:
-    name: Codestandards
+    name: ESLint
     runs-on: ubuntu-latest
     steps:
       - name: "☁️ checkout repository"
