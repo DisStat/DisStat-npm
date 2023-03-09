@@ -2,8 +2,7 @@ name: Run tests
 
 on:
   push:
-    branches: [ master ]
-  pull:
+  pull_request:
 
 jobs:
   test:
