@@ -4,7 +4,7 @@
   "description": "This package allows you to automatically post bot stats and other data to DisStat",
   "main": "index.js",
   "scripts": {
-    "test": "npm test",
+    "test": "jest",
     "link": "npx eslint . --report-unused-disable-directives"
   },
   "repository": {
@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/DEVTomatoCake/DisStat-npm/issues"
   },
-  "homepage": "https://github.com/DEVTomatoCake/DisStat-npm#readme"
+  "homepage": "https://github.com/DEVTomatoCake/DisStat-npm#readme",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
 }

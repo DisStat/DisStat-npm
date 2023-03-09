@@ -1,0 +1,23 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ master ]
+  pull:
+
+jobs:
+  test:
+    name: Run lib tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: "☁️ checkout repository"
+        uses: actions/checkout@v3
+
+      - name: "🔧 setup node"
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: "🔍 lint code"
+        run: npm test

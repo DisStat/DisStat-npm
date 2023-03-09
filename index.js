@@ -1,4 +1,4 @@
-class ApiWrapper {
+class DisStat {
 	constructor(apikey = "", botId = "") {
 		if (!apikey) throw new Error("No API key for DisStat provided. You can find your API key in the DisStat dashboard, it's the same for all your bots.")
 		if (!botId) throw new Error("No bot ID provided.")
@@ -32,6 +32,7 @@ class ApiWrapper {
 	}
 
 	async postCommand(command = "", userId = "") {
+		if (!command) throw new Error("No command provided.")
 		const url = this.base_url + "/bot/" + this.botId + "/cmd"
 		fetch(url, {
 			method: "post",
@@ -46,10 +47,12 @@ class ApiWrapper {
 		})
 	}
 	async postCmd(command = "", userId = "") {
+		if (!command) throw new Error("No command provided.")
 		return await this.postCommand(command, userId)
 	}
 
 	async postEvent(event = "", userId = "") {
+		if (!event) throw new Error("No event provided.")
 		const url = this.base_url + "/bot/" + this.botId + "/event"
 		fetch(url, {
 			method: "post",
@@ -64,3 +67,5 @@ class ApiWrapper {
 		})
 	}
 }
+
+module.exports = DisStat
