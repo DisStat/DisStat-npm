@@ -9,16 +9,17 @@ DisStat itself is still in development too, so expect breaking changes while we'
 
 # Installation
 ```bash
-npm i disstat-npm
+npm i disstat
 ```
 
 # Usage
 ```js
-const DisStat = require("disstat-npm")
+const DisStat = require("disstat")
 
 /*
  * @param {string} apiKey - Your api key, found at https://disstat.numselli.xyz/me
- * @param {string} bot - Your bot's user id OR your discord.js client. If provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
+ * @param {string} bot - Your bot's user id OR a discord.js based bot client.
+ * If a client is provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
  */
 const disstat = new DisStat("DS-apikey123", "685166801394335819")
 const disstat = new DisStat("DS-apikey123", client)
