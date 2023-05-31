@@ -1,6 +1,6 @@
 {
   "name": "disstat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "This package allows you to automatically post bot stats and other data to DisStat",
   "main": "index.js",
   "scripts": {
