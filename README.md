@@ -1,7 +1,7 @@
 # DisStat-npm
-The official npm package for [DisStat](https://disstat.pages.dev)
+The official npm package for [DisStat](https://disstat.numselli.xyz)
 
-You can find the public api [on swagger](https://app.swaggerhub.com/apis-docs/DisStat/DisStat),
+You can find the public api and example responses on https://disstat.numselli.xyz/docs,
 if you dont want to use an api wrapper.
 
 ## ⚠️ Warning: This package is still in development and may not work as expected.
@@ -17,11 +17,11 @@ npm i disstat-npm
 const DisStat = require("disstat-npm")
 
 /*
- * @param {string} apiKey - Your api key, found at https://disstat.pages.dev/me
- * @param {string} botId - Your bot's id
- * @param {Client} client? - Your discord.js client. If provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
+ * @param {string} apiKey - Your api key, found at https://disstat.numselli.xyz/me
+ * @param {string} bot - Your bot's user id OR your discord.js client. If provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
  */
-const disstat = new DisStat("DS-apikey123", "685166801394335819", client)
+const disstat = new DisStat("DS-apikey123", "685166801394335819")
+const disstat = new DisStat("DS-apikey123", client)
 
 /*
  * Gets data from your bot or someone else's (public) bot.
@@ -48,7 +48,6 @@ console.log(newBotData)
  * @param {string} command - The command to post
  * @param {string} userId? - The user's id
  */
-disstat.postCmd("about")
 disstat.postCommand("help", "581146486646243339")
 
 /*
@@ -58,5 +57,3 @@ disstat.postCommand("help", "581146486646243339")
  */
 disstat.postEvent("interactionCreate", "581146486646243339")
 ```
-
-Example responses can be found in the [docs](https://app.swaggerhub.com/apis-docs/DisStat/DisStat).
