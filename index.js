@@ -1,9 +1,9 @@
 class DisStat {
 	constructor(apikey = "", bot = "") {
-		if (!apikey) throw new Error("No API key for DisStat provided. You can find your API key in the DisStat dashboard, it's the same for all your bots.")
+		if (!apikey) throw new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
 
 		this.botId = typeof bot == "object" ? bot.user.id : bot
-		if (!this.botId) throw new Error("No or invalid bot ID provided.")
+		if (!this.botId) throw new Error("Missing or invalid bot ID provided.")
 		this.apikey = apikey
 		this.base_url = "https://disstat.numselli.xyz/api"
 

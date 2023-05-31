@@ -17,7 +17,7 @@ npm i disstat
 const DisStat = require("disstat")
 
 /*
- * @param {string} apiKey - Your api key, found at https://disstat.numselli.xyz/me
+ * @param {string} apiKey - Your api key, found at the bot page
  * @param {string} bot - Your bot's user id OR a discord.js based bot client.
  * If a client is provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
  */
