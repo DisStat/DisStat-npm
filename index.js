@@ -9,19 +9,23 @@ class DisStat {
 
 		if (typeof bot == "object") {
 			this.bot = bot
-			this.unposted = {}
+			this.unposted = {
+				commands: [],
+				events: []
+			}
 			setTimeout(this.autopost, 60000)
 		}
 	}
 
 	async autopost() {
-		const data = this.unposted
+		const data = {}
 		if (this.bot) {
 			data.guildCount = this.bot.guilds.cache.size
 			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
 			data.userCount = this.bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
 		}
 		data.commandsRun = this.unposted.commands ? this.unposted.commands.length : 0
+		data.eventsReceived = this.unposted.events ? this.unposted.events.length : 0
 		data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
 		data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
 		data.cpuUsage = process.cpuUsage().user / 1000 / 1000
@@ -79,33 +83,16 @@ class DisStat {
 
 	async postCommand(command = "", userId = "") {
 		if (!command) throw new Error("No command provided.")
-
-		await fetch(this.base_url + "/bot/" + this.botId + "/cmd", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: this.apikey
-			},
-			body: JSON.stringify({
-				command,
-				userId
-			})
-		})
+		const cmd = [command]
+		if (userId) cmd.push(userId)
+		this.unposted.commands.push(cmd)
 	}
 
 	async postEvent(event = "", userId = "") {
 		if (!event) throw new Error("No event provided.")
-		fetch(this.base_url + "/bot/" + this.botId + "/event", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: this.apikey
-			},
-			body: JSON.stringify({
-				event,
-				userId
-			})
-		})
+		const cmd = [event]
+		if (userId) cmd.push(userId)
+		this.unposted.events.push(cmd)
 	}
 }
 
