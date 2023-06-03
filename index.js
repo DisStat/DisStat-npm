@@ -10,7 +10,7 @@ class DisStat {
 		if (typeof bot == "object") {
 			this.bot = bot
 			this.unposted = {}
-			this.autopost()
+			setTimeout(this.autopost, 60000)
 		}
 	}
 
@@ -28,7 +28,7 @@ class DisStat {
 
 		await this.postData(data)
 		this.unposted = {}
-		setTimeout(autopost, 60000)
+		setTimeout(this.autopost, 60000)
 	}
 
 	async getBot(botId = "") {

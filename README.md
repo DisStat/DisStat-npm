@@ -19,7 +19,8 @@ const DisStat = require("disstat")
 /*
  * @param {string} apiKey - Your api key, found at the bot page
  * @param {string} bot - Your bot's user id OR a discord.js based bot client.
- * If a client is provided, the package will automatically post server and user count to DisStat and as such, will disable related manual posting.
+ * If a client is provided, the package will automatically post server and user count to DisStat.
+ * Note that the client has to be ready, so if you're using a client there, put this into it's ready event.
  */
 const disstat = new DisStat("DS-apikey123", "685166801394335819")
 const disstat = new DisStat("DS-apikey123", client)
