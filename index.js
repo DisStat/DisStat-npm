@@ -57,7 +57,10 @@ async function autopost() {
     data.cpuUsage = process.cpuUsage().user / 1000 / 1000
 
     await postData(data)
-    unposted = {}
+    unposted = {
+        commands: [],
+        events: []
+    }
     setTimeout(autopost, 60000)
 }
 
