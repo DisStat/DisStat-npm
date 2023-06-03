@@ -1,99 +1,115 @@
+const baseURL = "https://disstat.numselli.xyz/api"
+let apiKey = ""
+
+let unposted = {
+    commands: [],
+    events: []
+}
+let botId = ""
+let bot = {}
+
 class DisStat {
-	constructor(apikey = "", bot = "") {
-		if (!apikey) throw new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
+	constructor(apiKeyInput = "", botInput = "") {
+		if (!apiKeyInput) throw new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
 
-		this.botId = typeof bot == "object" ? bot.user.id : bot
-		if (!this.botId) throw new Error("Missing or invalid bot ID provided.")
-		this.apikey = apikey
-		this.base_url = "https://disstat.numselli.xyz/api"
+		botId = typeof botInput == "object" ? botInput.user.id : botInput
+		if (!botId) throw new Error("Missing or invalid bot ID provided.")
+		apiKey = apiKeyInput
 
-		if (typeof bot == "object") {
-			this.bot = bot
-			this.unposted = {
-				commands: [],
-				events: []
-			}
-			setTimeout(this.autopost, 60000)
+		if (typeof botInput == "object") {
+			bot = botInput
+			setTimeout(autopost, 30000)
 		}
 	}
 
-	async autopost() {
-		const data = {}
-		if (this.bot) {
-			data.guildCount = this.bot.guilds.cache.size
-			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
-			data.userCount = this.bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
-		}
-		data.commandsRun = this.unposted.commands ? this.unposted.commands.length : 0
-		data.eventsReceived = this.unposted.events ? this.unposted.events.length : 0
-		data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
-		data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
-		data.cpuUsage = process.cpuUsage().user / 1000 / 1000
-
-		await this.postData(data)
-		this.unposted = {}
-		setTimeout(this.autopost, 60000)
-	}
-
-	async getBot(botId = "") {
-		const response = await fetch(this.base_url + "/bots/" + (botId || this.botId), {
-			headers: {
-				Authorization: this.apikey
-			}
-		})
-		return await response.json()
-	}
-
-	async getMyBots() {
-		const response = await fetch(this.base_url + "/mybots", {
-			headers: {
-				Authorization: this.apikey
-			}
-		})
-		return await response.json()
+	async getBot(botIdInput = "") {
+		return await getBot(botIdInput)
 	}
 
 	async postData(data = {}, returnStats = false) {
-		const response = await fetch(this.base_url + "/stats/post", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: this.apikey
-			},
-			body: JSON.stringify({
-				...data,
-				id: this.botId
-			})
-		})
-		if (returnStats) return await response.json()
+		return await postData(data, returnStats)
 	}
 
 	async sync() {
-		await fetch(this.base_url + "/bots/sync", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: this.apikey
-			},
-			body: JSON.stringify({
-				bot: botId
-			})
-		})
+		await sync()
 	}
 
 	async postCommand(command = "", userId = "") {
-		if (!command) throw new Error("No command provided.")
-		const cmd = [command]
-		if (userId) cmd.push(userId)
-		this.unposted.commands.push(cmd)
+		await postCommand(command, userId)
 	}
 
 	async postEvent(event = "", userId = "") {
-		if (!event) throw new Error("No event provided.")
-		const cmd = [event]
-		if (userId) cmd.push(userId)
-		this.unposted.events.push(cmd)
+		await postEvent(event, userId)
 	}
+}
+
+async function autopost() {
+    const data = unposted
+    if (bot) {
+        data.guildCount = bot.guilds.cache.size
+        data.shardCount = bot.shard ? bot.shard.count : 0
+        data.userCount = bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
+    }
+    data.commandsRun = unposted.commands ? unposted.commands.length : 0
+    data.eventsReceived = unposted.events ? unposted.events.length : 0
+    data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
+    data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
+    data.cpuUsage = process.cpuUsage().user / 1000 / 1000
+
+    await postData(data)
+    unposted = {}
+    setTimeout(autopost, 60000)
+}
+
+async function getBot(botIdInput = "") {
+    const response = await fetch(baseURL + "/bots/" + (botIdInput || botId), {
+        headers: {
+            Authorization: apiKey
+        }
+    })
+    return await response.json()
+}
+
+async function postData(data = {}, returnStats = false) {
+    const response = await fetch(baseURL + "/stats/post", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: apiKey
+        },
+        body: JSON.stringify({
+            ...data,
+            id: botId
+        })
+    })
+    if (returnStats) return await response.json()
+}
+
+async function sync() {
+    await fetch(baseURL + "/bots/sync", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: apiKey
+        },
+        body: JSON.stringify({
+            bot: botId
+        })
+    })
+}
+
+async function postCommand(command = "", userId = "") {
+    if (!command) throw new Error("No command provided.")
+    const cmd = [command]
+    if (userId) cmd.push(userId)
+    unposted.commands.push(cmd)
+}
+
+async function postEvent(event = "", userId = "") {
+    if (!event) throw new Error("No event provided.")
+    const cmd = [event]
+    if (userId) cmd.push(userId)
+    unposted.events.push(cmd)
 }
 
 module.exports = DisStat
