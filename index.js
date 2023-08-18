@@ -2,8 +2,8 @@ const baseURL = "https://disstat.numselli.xyz/api"
 let apiKey = ""
 
 let unposted = {
-    commands: [],
-    events: []
+	commands: [],
+	events: []
 }
 let botId = ""
 let bot = {}
@@ -31,88 +31,92 @@ class DisStat {
 	}
 
 	async sync() {
-		await sync()
+		return await sync()
 	}
 
 	async postCommand(command = "", userId = "") {
-		await postCommand(command, userId)
+		return await postCommand(command, userId)
 	}
 
 	async postEvent(event = "", userId = "") {
-		await postEvent(event, userId)
+		return await postEvent(event, userId)
 	}
 }
 
 async function autopost() {
-    const data = unposted
-    if (bot) {
-        data.guildCount = bot.guilds.cache.size
-        data.shardCount = bot.shard ? bot.shard.count : 0
-        data.userCount = bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
-    }
-    data.commandsRun = unposted.commands ? unposted.commands.length : 0
-    data.eventsReceived = unposted.events ? unposted.events.length : 0
-    data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
-    data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
-    data.cpuUsage = process.cpuUsage().user / 1000 / 1000
+	const data = unposted
+	if (bot) {
+		data.guildCount = bot.guilds.cache.size
+		data.shardCount = bot.shard ? bot.shard.count : 0
+		data.userCount = bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
+	}
+	data.commandsRun = unposted.commands ? unposted.commands.length : 0
+	data.eventsReceived = unposted.events ? unposted.events.length : 0
+	data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
+	data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
+	data.cpuUsage = process.cpuUsage().user / 1000 / 1000
 
-    await postData(data)
-    unposted = {
-        commands: [],
-        events: []
-    }
-    setTimeout(autopost, 60000)
+	await postData(data)
+	unposted = {
+		commands: [],
+		events: []
+	}
+	setTimeout(autopost, 60000)
 }
 
 async function getBot(botIdInput = "") {
-    const response = await fetch(baseURL + "/bots/" + (botIdInput || botId), {
-        headers: {
-            Authorization: apiKey
-        }
-    })
-    return await response.json()
+	const response = await fetch(baseURL + "/bots/" + (botIdInput || botId), {
+		headers: {
+			Authorization: apiKey
+		}
+	})
+	return await response.json()
 }
 
 async function postData(data = {}, returnStats = false) {
-    const response = await fetch(baseURL + "/stats/post", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: apiKey
-        },
-        body: JSON.stringify({
-            ...data,
-            id: botId
-        })
-    })
-    if (returnStats) return await response.json()
+	const response = await fetch(baseURL + "/stats/post", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: apiKey
+		},
+		body: JSON.stringify({
+			...data,
+			id: botId
+		})
+	})
+	if (returnStats) return await response.json()
 }
 
 async function sync() {
-    await fetch(baseURL + "/bots/sync", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: apiKey
-        },
-        body: JSON.stringify({
-            bot: botId
-        })
-    })
+	await fetch(baseURL + "/bots/sync", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: apiKey
+		},
+		body: JSON.stringify({
+			bot: botId
+		})
+	})
 }
 
 async function postCommand(command = "", userId = "") {
-    if (!command) throw new Error("No command provided.")
-    const cmd = [command]
-    if (userId) cmd.push(userId)
-    unposted.commands.push(cmd)
+	if (!command) return new Error("No command provided.")
+	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expect length 15-25 but got " + userId.length)
+
+	const cmd = [command]
+	if (userId) cmd.push(userId)
+	unposted.commands.push(cmd)
 }
 
 async function postEvent(event = "", userId = "") {
-    if (!event) throw new Error("No event provided.")
-    const cmd = [event]
-    if (userId) cmd.push(userId)
-    unposted.events.push(cmd)
+	if (!event) return new Error("No event provided.")
+	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expect length 15-25 but got " + userId.length)
+
+	const cmd = [event]
+	if (userId) cmd.push(userId)
+	unposted.events.push(cmd)
 }
 
 module.exports = DisStat

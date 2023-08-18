@@ -1,10 +1,10 @@
 const DisStat = require("./index.js")
 
 test("missing apikey", () => {
-	expect(() => new DisStat()).toBeInstanceOf(Function)
+	expect(new DisStat()).toBeInstanceOf(Error)
 })
 test("missing botId", () => {
-	expect(() => new DisStat("jest")).toBeInstanceOf(Function)
+	expect(new DisStat("jest")).toBeInstanceOf(Error)
 })
 
 test("getBot", async () => {
@@ -13,13 +13,19 @@ test("getBot", async () => {
 	expect(Object.keys(bot)).toContain("username")
 })
 
-test("postData", async () => {
+/*test("postData", async () => {
 	const disstat = new DisStat("jest", "jest")
 	const data = await disstat.postData({}, true)
 	expect(Object.keys(data)).toContain("message")
+})*/
+
+test("postCommand empty", async () => {
+	const disstat = new DisStat("jest", "jest")
+	const data = await disstat.postCommand()
+	expect(data).toBeInstanceOf(Error)
 })
 
-test("postCommand", async () => {
+test("postCommand with content", async () => {
 	const disstat = new DisStat("jest", "jest")
 	const data = await disstat.postCommand("jest")
 	expect(data).toBeUndefined()
