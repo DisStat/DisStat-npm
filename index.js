@@ -10,10 +10,10 @@ let bot = {}
 
 class DisStat {
 	constructor(apiKeyInput = "", botInput = "") {
-		if (!apiKeyInput) throw new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
+		if (!apiKeyInput) return new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
 
 		botId = typeof botInput == "object" ? botInput.user.id : botInput
-		if (!botId) throw new Error("Missing or invalid bot ID provided.")
+		if (!botId) return new Error("Missing or invalid bot ID provided, got type: " + typeof botInput)
 		apiKey = apiKeyInput
 
 		if (typeof botInput == "object") {

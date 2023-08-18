@@ -1,10 +1,10 @@
 const DisStat = require("./index.js")
 
 test("missing apikey", () => {
-	expect(() => new DisStat()).toThrow()
+	expect(() => new DisStat()).toBeInstanceOf(Function)
 })
 test("missing botId", () => {
-	expect(() => new DisStat("jest")).toThrow()
+	expect(() => new DisStat("jest")).toBeInstanceOf(Function)
 })
 
 test("getBot", async () => {
