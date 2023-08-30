@@ -118,7 +118,7 @@ async function postEvent(event = "", userId = "") {
 	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
 
 	if (userId && unposted.members.includes(userId)) unposted.members.push(userId)
-	unposted.events.push(cmd)
+	unposted.events.push(event)
 }
 
 module.exports = DisStat
