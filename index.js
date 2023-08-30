@@ -5,7 +5,7 @@ let apiKey = ""
 let unposted = {
 	commands: [],
 	events: [],
-	members: []
+	botUsers: []
 }
 let botId = ""
 let bot = {}
@@ -54,16 +54,19 @@ async function autopost() {
 	}
 	data.commandsRun = unposted.commands ? unposted.commands.length : 0
 	data.eventsReceived = unposted.events ? unposted.events.length : 0
-	data.members = unposted.members ? unposted.members.length : 0
+	data.members = unposted.botUsers ? unposted.botUsers.length : 0
 	data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
 	data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
 	data.cpuUsage = process.cpuUsage().user / 1000 / 1000
 
+	delete data.commands
+	delete data.events
+	delete data.botUsers
 	await postData(data)
 	unposted = {
 		commands: [],
 		events: [],
-		members: []
+		botUsers: []
 	}
 	setTimeout(autopost, autopostInterval)
 }
@@ -109,7 +112,7 @@ async function postCommand(command = "", userId = "") {
 	if (!command) return new Error("No command provided.")
 	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
 
-	if (userId && unposted.members.includes(userId)) unposted.members.push(userId)
+	if (userId && unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
 	unposted.commands.push(command)
 }
 
@@ -117,7 +120,7 @@ async function postEvent(event = "", userId = "") {
 	if (!event) return new Error("No event provided.")
 	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
 
-	if (userId && unposted.members.includes(userId)) unposted.members.push(userId)
+	if (userId && unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
 	unposted.events.push(event)
 }
 
