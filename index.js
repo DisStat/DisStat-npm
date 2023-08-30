@@ -46,7 +46,12 @@ class DisStat {
 }
 
 async function autopost() {
-	const data = unposted
+	const data = {
+		...unposted,
+		commands: void 0,
+		events: void 0,
+		botUsers: void 0
+	}
 	if (bot) {
 		data.guildCount = bot.guilds.cache.size
 		data.shardCount = bot.shard ? bot.shard.count : 0
@@ -59,9 +64,6 @@ async function autopost() {
 	data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
 	data.cpuUsage = process.cpuUsage().user / 1000 / 1000
 
-	delete data.commands
-	delete data.events
-	delete data.botUsers
 	await postData(data)
 	unposted = {
 		commands: [],
@@ -74,7 +76,8 @@ async function autopost() {
 async function getBot(botIdInput = "") {
 	const response = await fetch(baseURL + "/bots/" + (botIdInput || botId), {
 		headers: {
-			Authorization: apiKey
+			Authorization: apiKey,
+			Accept: "application/json"
 		}
 	})
 	return await response.json()
@@ -112,7 +115,7 @@ async function postCommand(command = "", userId = "") {
 	if (!command) return new Error("No command provided.")
 	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
 
-	if (userId && unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
+	if (userId && !unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
 	unposted.commands.push(command)
 }
 
@@ -120,7 +123,7 @@ async function postEvent(event = "", userId = "") {
 	if (!event) return new Error("No event provided.")
 	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
 
-	if (userId && unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
+	if (userId && !unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
 	unposted.events.push(event)
 }
 
