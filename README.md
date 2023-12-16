@@ -1,11 +1,8 @@
 # DisStat-npm
-The official npm package for [DisStat](https://disstat.numselli.xyz)
+The official npm package for [DisStat](https://disstat.pages.dev) -
+DisStat itself is [open source](https://github.com/DisStat/DisStat) btw!
 
-You can find the public api and example responses on https://disstat.numselli.xyz/docs,
-if you dont want to use an api wrapper.
-
-## ⚠️ Warning: This package is still in development and may not work as expected.
-DisStat itself is still in development too, so expect breaking changes while we're not fully released.
+You can find the public HTTP api docs on https://disstat.pages.dev/docs if you dont want to use an api wrapper.
 
 # Installation
 ```bash
@@ -17,16 +14,17 @@ npm i disstat
 const DisStat = require("disstat")
 
 /*
- * @param {string} apiKey - Your api key, found at the bot page
- * @param {string} bot - Your bot's user id OR a discord.js based bot client.
- * If a client is provided, the package will automatically post server and user count to DisStat.
+ * @param {string} apiKey - Your api key, found in your dashboard on https://disstat.pages.dev/me
+ * @param {string|Discord.Client} bot - Your bot's user id OR a discord.js based bot client.
+ *
+ * If a client is provided, the package will automatically post server and user count to DisStat ("autoposting").
  * Note that the client has to be ready, so if you're using a client there, put this into it's ready event.
  */
 const disstat = new DisStat("DS-apikey123", "685166801394335819")
 const disstat = new DisStat("DS-apikey123", client)
 
 /*
- * Gets data from your bot or someone else's (public) bot.
+ * Gets data from your bot or someone else public bot.
  * @param {string} botId? - The bot's id
  * @returns {Promise<Object>} - The bot's data
  */
@@ -35,27 +33,42 @@ console.log(botData)
 
 /*
  * Posts your bots data to DisStat.
- * @param {Object} data - The data to post
+ * Warning: You shouldn't use this when autoposting.
+ *
+ * @param {Object} data - The data to post:
  * @param {number} data.servers - The amount of servers your bot is in, e.g. client.guilds.cache.size
  * @param {number} data.users - The amount of users your bot can see, e.g. client.users.cache.size
  * @param {number} data.shards - The amount of shards your bot is using, e.g. client.shard.count
- * @param {boolean} returnStats? - Whether to return the stats after posting, default false
- * @returns {Promise<Object>} - The stats after posting, if returnStats is true
  */
-const newBotData = await disstat.postData({ servers: 42, users: 100, shards: 1 }, true)
+const newBotData = await disstat.postData({ servers: 42, users: 100, shards: 1 })
 console.log(newBotData)
 
 /*
  * Posts a command to DisStat.
+ * You shouldn't post user generated commands like custom commands to protect user privacy.
+ * You also should exclude the prefix and command arguments from the command.
+ *
  * @param {string} command - The command to post
  * @param {string} userId? - The user's id
+ * @param {string} guildId? - The guild's id
+ * @param {Boolean} force? - Whether to force the command to be posted instantly IF autoposting is enabled,
+ * defaults to false, causing a delay from up to 90 seconds.
  */
-disstat.postCommand("help", "581146486646243339")
+disstat.postCommand("info")
+disstat.postCommand("help", "581146486646243339", "1081089799324180490")
 
 /*
- * Posts an event to DisStat.
- * @param {string} command - The command to post
- * @param {string} userId? - The user's id
+ * Posts data for a custom graph to DisStat.
+ * Note that using a not used type here creates the custom graph on DisStat if you have enough unused graph slots.
+ *
+ * @param {string} type - The type of event to post
+ * @param {string|Number} value1? - First custom value (e.g. an event name like "interactionCreate")
+ * @param {string|Number} value2? - Second custom value (e.g. a user ID)
+ * @param {string|Number} value3? - Third custom value (e.g. a guild ID)
  */
-disstat.postEvent("interactionCreate", "581146486646243339")
+disstat.postCustom("events", "interactionCreate")
+
+if (message.content.includes("<@" + bot.user.id + ">")) {
+	disstat.postCustom("ping")
+}
 ```

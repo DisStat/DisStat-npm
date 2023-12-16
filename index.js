@@ -1,130 +1,135 @@
-const baseURL = "https://disstat.numselli.xyz/api"
+const baseURL = "https://disstat-api.tomatenkuchen.com/v1/"
 const autopostInterval = 90000
-let apiKey = ""
 
-let unposted = {
-	commands: [],
-	events: [],
-	botUsers: []
-}
-let botId = ""
-let bot = {}
+const EventEmitter = require("node:events")
+const os = require("node:os")
 
-class DisStat {
+class DisStat extends EventEmitter {
 	constructor(apiKeyInput = "", botInput = "") {
-		if (!apiKeyInput) return new Error("No DisStat API key provided. You can find the API key on the Manage Bot page of your bot.")
+		super()
 
-		botId = typeof botInput == "object" ? botInput.user.id : botInput
-		if (!botId) return new Error("Missing or invalid bot ID provided, got type: " + typeof botInput)
-		apiKey = apiKeyInput
+		this.apiKey = ""
+		this.botId = ""
+		this.bot = {}
+		this.autoposting = false
+
+		this.unposted = {
+			commands: []
+		}
+
+		if (!apiKeyInput) throw new TypeError("No DisStat API key provided as first argument. You can find the API key on the Manage Bot page of your bot.")
+		if (!apiKeyInput.startsWith("DS-")) console.warn("[DisStat " + new Date().toLocaleTimeString() + "] The provided API key as first argument doesn't start with \"DS-\".")
+
+		this.botId = typeof botInput == "object" ? botInput.user.id : botInput
+		if (!this.botId) throw new TypeError("Missing (falsy) Discord bot ID provided, but a bot ID is required as second argument")
+		this.apiKey = apiKeyInput
 
 		if (typeof botInput == "object") {
-			bot = botInput
-			setTimeout(autopost, 30000)
+			this.startUsage = process.cpuUsage()
+			this.startTime = Date.now()
+			this.prevUsage = {}
+
+			this.autoposting = true
+			this.bot = botInput
+			setTimeout(this.autopost, 30000)
 		}
+	}
+
+	async autopost() {
+		this.emit("autopost")
+
+		const data = this.unposted
+		if (this.bot) {
+			data.guildCount = this.bot.guilds.cache.size
+			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
+			data.userCount = this.bot.guilds.cache.filter(guild => guild.available).reduce((acc, cur) => acc + cur.memberCount, 0)
+			data.apiPing = this.bot.ws.ping
+		}
+		data.ramUsage = process.memoryUsage.rss()
+		data.ramTotal = process.memoryUsage().heapTotal
+
+		const endUsage = process.cpuUsage()
+		const elapTime = endUsage.user - this.startUsage.user + endUsage.system - this.startUsage.system
+		const elapTimeMS = Date.now() - this.startTime
+		this.startUsage = process.cpuUsage()
+		this.startTime = Date.now()
+		data.cpu = 100 * elapTime / (1000 * elapTimeMS * os.cpus().length)
+
+		// TODO: Bandwidth usage
+
+		let result = {}
+		try {
+			result = await this.postData(data)
+		} catch (e) {
+			console.warn("[DisStat " + new Date().toLocaleTimeString() + "] Failed to post data to DisStat API. Error: " + e.message, result)
+		}
+
+		setTimeout(this.autopost, autopostInterval)
+		this.unposted = {
+			commands: []
+		}
+
+		this.emit("autopost-finish", data)
 	}
 
 	async getBot(botIdInput = "") {
-		return await getBot(botIdInput)
-	}
-
-	async postData(data = {}, returnStats = false) {
-		return await postData(data, returnStats)
-	}
-
-	async sync() {
-		return await sync()
-	}
-
-	async postCommand(command = "", userId = "") {
-		return await postCommand(command, userId)
-	}
-
-	async postEvent(event = "", userId = "") {
-		return await postEvent(event, userId)
-	}
-}
-
-async function autopost() {
-	const data = {
-		...unposted,
-		commands: void 0,
-		events: void 0,
-		botUsers: void 0
-	}
-	if (bot) {
-		data.guildCount = bot.guilds.cache.size
-		data.shardCount = bot.shard ? bot.shard.count : 0
-		data.userCount = bot.guilds.cache.reduce((acc, cur) => acc + cur.memberCount, 0)
-	}
-	data.commandsRun = unposted.commands ? unposted.commands.length : 0
-	data.eventsReceived = unposted.events ? unposted.events.length : 0
-	data.members = unposted.botUsers ? unposted.botUsers.length : 0
-	data.ramUsage = process.memoryUsage().heapUsed / 1024 / 1024
-	data.totalRam = process.memoryUsage().heapTotal / 1024 / 1024
-	data.cpuUsage = process.cpuUsage().user / 1000 / 1000
-
-	await postData(data)
-	unposted = {
-		commands: [],
-		events: [],
-		botUsers: []
-	}
-	setTimeout(autopost, autopostInterval)
-}
-
-async function getBot(botIdInput = "") {
-	const response = await fetch(baseURL + "/bots/" + (botIdInput || botId), {
-		headers: {
-			Authorization: apiKey,
-			Accept: "application/json"
-		}
-	})
-	return await response.json()
-}
-
-async function postData(data = {}, returnStats = false) {
-	const response = await fetch(baseURL + "/stats/post", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: apiKey
-		},
-		body: JSON.stringify({
-			...data,
-			id: botId
+		const response = await fetch(baseURL + "bot/" + (botIdInput || this.botId), {
+			headers: {
+				Authorization: this.apiKey,
+				Accept: "application/json"
+			}
 		})
-	})
-	if (returnStats) return await response.json()
-}
+		return await response.json()
+	}
 
-async function sync() {
-	await fetch(baseURL + "/bots/sync", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: apiKey
-		},
-		body: JSON.stringify({
-			bot: botId
+	async postData(data = {}) {
+		if (!data || typeof data != "object" || Object.keys(data).length == 0) throw new TypeError("No data object provided to postData().")
+
+		const response = await fetch(baseURL + "bot/" + this.botId, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+				Authorization: this.apiKey
+			},
+			body: JSON.stringify(data)
 		})
-	})
-}
+		if (!response.ok) return await response.json()
+	}
 
-async function postCommand(command = "", userId = "") {
-	if (!command) return new Error("No command provided.")
-	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
+	async postCommand(command = "", userId = "", guildId = "", force = false) {
+		if (!command || command.trim() == "") return new TypeError("No command name provided to postCommand().")
 
-	if (userId && !unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
-	unposted.commands.push(command)
-}
+		if (force || !this.autoposting) await fetch(baseURL + "bot/" + this.botId + "/command", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: this.apiKey
+			},
+			body: JSON.stringify({
+				command,
+				user: userId,
+				guild: guildId
+			})
+		})
+		else this.unposted.commands.push({
+			command,
+			user: userId,
+			guild: guildId
+		})
+	}
 
-async function postEvent(event = "", userId = "") {
-	if (!event) return new Error("No event provided.")
-	if (userId && (userId.length < 15 || userId.length > 25)) return new Error("Invalid user ID provided, expected length 15-25 but got length " + userId.length + ": " + userId)
+	async postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
+		if (!type || type.trim() == "") return new TypeError("No custom graph type provided to postCustom().")
 
-	if (userId && !unposted.botUsers.includes(userId)) unposted.botUsers.push(userId)
-	unposted.events.push(event)
+		if (!this.unposted[type]) this.unposted[type] = []
+		this.unposted[type].push({
+			type,
+			value1,
+			value2,
+			value3
+		})
+	}
 }
 
 module.exports = DisStat

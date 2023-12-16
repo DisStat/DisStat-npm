@@ -1,7 +1,7 @@
 {
   "name": "disstat",
   "version": "0.2.9",
-  "description": "This package allows you to automatically post bot stats and other data to DisStat",
+  "description": "Post data from a discord.js client automatically, or manually to DisStat for Discord bot statistic tracking.",
   "main": "index.js",
   "scripts": {
     "test": "npx jest",
@@ -14,12 +14,16 @@
   "keywords": [
     "discord",
     "bot",
-    "stats",
-    "statistics",
+    "bot-stats",
+    "bot-tracking",
+    "djs",
+    "discordjs",
+    "discord.js",
+    "dcbot",
     "discordbot",
     "statcord",
-    "disstat",
-    "autopost"
+    "statcord.com",
+    "disstat"
   ],
   "author": "TomatoCake",
   "license": "MIT",
@@ -28,6 +32,9 @@
   },
   "homepage": "https://github.com/DEVTomatoCake/DisStat-npm#readme",
   "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-plugin-sonarjs": "^0.23.0",
+    "eslint-plugin-unicorn": "^49.0.0",
     "jest": "^29.7.0"
   }
 }
