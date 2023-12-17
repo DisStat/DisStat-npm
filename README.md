@@ -9,7 +9,7 @@ You can find the public HTTP api docs on https://disstat.pages.dev/docs if you d
 npm i disstat
 ```
 
-# Usage
+# Main usage
 ```js
 const DisStat = require("disstat")
 
@@ -44,15 +44,13 @@ const newBotData = await disstat.postData({ servers: 42, users: 100, shards: 1 }
 console.log(newBotData)
 
 /*
- * Posts a command to DisStat.
+ * Posts a command to DisStat using custom graphs.
  * You shouldn't post user generated commands like custom commands to protect user privacy.
  * You also should exclude the prefix and command arguments from the command.
  *
  * @param {string} command - The command to post
  * @param {string} userId? - The user's id
  * @param {string} guildId? - The guild's id
- * @param {Boolean} force? - Whether to force the command to be posted instantly IF autoposting is enabled,
- * defaults to false, causing a delay from up to 90 seconds.
  */
 disstat.postCommand("info")
 disstat.postCommand("help", "581146486646243339", "1081089799324180490")
@@ -60,8 +58,9 @@ disstat.postCommand("help", "581146486646243339", "1081089799324180490")
 /*
  * Posts data for a custom graph to DisStat.
  * Note that using a not used type here creates the custom graph on DisStat if you have enough unused graph slots.
+ * Don't use names like "servers" or "users" here, as they are reserved for the main graphs, and would get overwritten.
  *
- * @param {string} type - The type of event to post
+ * @param {string} type - The name of the custom graph to post to
  * @param {string|Number} value1? - First custom value (e.g. an event name like "interactionCreate")
  * @param {string|Number} value2? - Second custom value (e.g. a user ID)
  * @param {string|Number} value3? - Third custom value (e.g. a guild ID)
@@ -71,4 +70,28 @@ disstat.postCustom("events", "interactionCreate")
 if (message.content.includes("<@" + bot.user.id + ">")) {
 	disstat.postCustom("ping")
 }
+```
+
+# Events
+The client emits events for different things which you can react to.
+
+```js
+const DisStat = require("disstat")
+const disstat = new DisStat(...)
+
+disstat.on("ready", () => {
+	console.log("DisStat is ready!")
+})
+
+disstat.on("autopost", () => {
+	console.log("Starting autoposting!")
+	// Emits on every autopost, not once. Use "ready" or .once() for that.
+})
+disstat.on("autopostError", (error, data) => {
+	console.log("Autoposting failed: " + error, data)
+})
+disstat.on("autopostSuccess", () => {
+	console.log("Finished autoposting!")
+})
+
 ```

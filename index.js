@@ -12,10 +12,7 @@ class DisStat extends EventEmitter {
 		this.botId = ""
 		this.bot = {}
 		this.autoposting = false
-
-		this.unposted = {
-			commands: []
-		}
+		this.unpostedCustom = []
 
 		if (!apiKeyInput) throw new TypeError("No DisStat API key provided as first argument. You can find the API key on the Manage Bot page of your bot.")
 		if (!apiKeyInput.startsWith("DS-")) console.warn("[DisStat " + new Date().toLocaleTimeString() + "] The provided API key as first argument doesn't start with \"DS-\".")
@@ -33,12 +30,14 @@ class DisStat extends EventEmitter {
 			this.bot = botInput
 			setTimeout(this.autopost, 30000)
 		}
+
+		this.emit("ready")
 	}
 
 	async autopost() {
 		this.emit("autopost")
 
-		const data = this.unposted
+		const data = this.unpostedCustom
 		if (this.bot) {
 			data.guildCount = this.bot.guilds.cache.size
 			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
@@ -61,15 +60,17 @@ class DisStat extends EventEmitter {
 		try {
 			result = await this.postData(data)
 		} catch (e) {
+			this.emit("autopostError", e, data)
 			console.warn("[DisStat " + new Date().toLocaleTimeString() + "] Failed to post data to DisStat API. Error: " + e.message, result)
+
+			setTimeout(this.autopost, autopostInterval / 2)
+			return
 		}
 
 		setTimeout(this.autopost, autopostInterval)
-		this.unposted = {
-			commands: []
-		}
+		this.unpostedCustom = []
 
-		this.emit("autopost-finish", data)
+		this.emit("autopostSuccess", data)
 	}
 
 	async getBot(botIdInput = "") {
@@ -97,33 +98,34 @@ class DisStat extends EventEmitter {
 		if (!response.ok) return await response.json()
 	}
 
-	async postCommand(command = "", userId = "", guildId = "", force = false) {
+	async postCommand(command = "", userId = void 0, guildId = void 0) {
 		if (!command || command.trim() == "") return new TypeError("No command name provided to postCommand().")
 
-		if (force || !this.autoposting) await fetch(baseURL + "bot/" + this.botId + "/command", {
+		if (this.autoposting) this.unpostedCustom.push({
+			type: "command",
+			value1: command,
+			value2: userId,
+			value3: guildId
+		})
+		else await fetch(baseURL + "bot/" + this.botId + "/custom", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: this.apiKey
 			},
 			body: JSON.stringify({
-				command,
-				user: userId,
-				guild: guildId
+				type: "command",
+				value1: command,
+				value2: userId,
+				value3: guildId
 			})
-		})
-		else this.unposted.commands.push({
-			command,
-			user: userId,
-			guild: guildId
 		})
 	}
 
 	async postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
 		if (!type || type.trim() == "") return new TypeError("No custom graph type provided to postCustom().")
 
-		if (!this.unposted[type]) this.unposted[type] = []
-		this.unposted[type].push({
+		this.unpostedCustom.push({
 			type,
 			value1,
 			value2,
