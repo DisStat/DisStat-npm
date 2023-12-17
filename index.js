@@ -106,10 +106,13 @@ class DisStat extends EventEmitter {
 			this.emit("post", false)
 			return e
 		})
-		const json = await response.json()
 
-		this.emit("post", response.ok, json)
-		if (!response.ok) return json
+		if (response.status == 204) this.emit("post", true)
+		else {
+			const json = await response.json()
+			this.emit("post", response.ok, json)
+			return json
+		}
 	}
 
 	async postCommand(command = "", userId = void 0, guildId = void 0) {
