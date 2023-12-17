@@ -19,7 +19,7 @@ class DisStat extends EventEmitter {
 		if (!apiKeyInput.startsWith("DS-")) console.warn("[DisStat " + new Date().toLocaleTimeString() + "] The provided API key as first argument doesn't start with \"DS-\".")
 
 		this.botId = typeof botInput == "object" ? botInput.user.id : botInput
-		if (!this.botId) throw new TypeError("Missing (falsy) Discord bot ID provided, but a bot ID is required as second argument")
+		if (!this.botId) throw new TypeError("Missing (falsy) Discord bot ID provided, but a discord.js bot client or ID is required as second argument")
 		this.apiKey = apiKeyInput
 
 		if (typeof botInput == "object") {
@@ -31,21 +31,18 @@ class DisStat extends EventEmitter {
 			this.bot = botInput
 			setTimeout(() => this.autopost(), 30000)
 		}
-
-		this.emit("ready")
 	}
 
 	async autopost() {
 		this.emit("autopostStart")
 
-		const data = {
-			custom: this.unpostedCustom
-		}
+		const data = {}
+		if (this.unpostedCustom.length > 0) data.custom = this.unpostedCustom
 		if (this.bot) {
-			data.guildCount = this.bot.guilds.cache.size
-			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
-			data.userCount = this.bot.guilds.cache.filter(guild => guild.available).reduce((acc, cur) => acc + cur.memberCount, 0)
-			data.apiPing = this.bot.ws.ping
+			data.guilds = this.bot.guilds.cache.size
+			data.shards = this.bot.shard ? this.bot.shard.count : 0
+			data.users = this.bot.guilds.cache.filter(guild => guild.available).reduce((acc, cur) => acc + cur.memberCount, 0)
+			data.apiPing = this.bot.ws.ping > 0 ? this.bot.ws.ping : void 0
 		}
 		data.ramUsage = process.memoryUsage.rss()
 		data.ramTotal = process.memoryUsage().heapTotal
@@ -136,6 +133,7 @@ class DisStat extends EventEmitter {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Accept: "application/json",
 				Authorization: this.apiKey
 			},
 			body: JSON.stringify(body)

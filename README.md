@@ -80,25 +80,20 @@ if (message.content.includes("<@" + bot.user.id + ">")) {
 const DisStat = require("disstat")
 const disstat = new DisStat(...)
 
-disstat.on("ready", () => {
-	console.log("DisStat is ready!")
+disstat.on("post", (error, data) => {
+	if (error) console.log("An error occurred while posting:", error, data)
+	else console.log("Posted data successfully:", data)
+	// This event also gets emitted on autoposting.
 })
 
 disstat.on("autopostStart", () => {
-	console.log("Starting autoposting...")
-	// Emits on every autopost, not once. Use "ready" or .once() for that.
+	console.log("Started autopost...")
 })
 disstat.on("autopostError", (error, data) => {
-	console.log("Autoposting failed: " + error, data)
+	console.log("Autopost failed: " + error, data)
 })
 disstat.on("autopostSuccess", data => {
-	console.log("Finished posting this data:", data)
-})
-
-disstat.on("post", error => {
-	if (error) console.log("An error occurred while posting:", error)
-	else console.log("Posted data successfully!")
-	// This event also gets emitted on autoposting.
+	console.log("Successfully posting data:", data)
 })
 
 ```
