@@ -12,6 +12,7 @@ class DisStat extends EventEmitter {
 		this.botId = ""
 		this.bot = {}
 		this.autoposting = false
+		this.noManualWarningSent = false
 		this.unpostedCustom = []
 
 		if (!apiKeyInput) throw new TypeError("No DisStat API key provided as first argument. You can find the API key on the Manage Bot page of your bot.")
@@ -35,7 +36,7 @@ class DisStat extends EventEmitter {
 	}
 
 	async autopost() {
-		this.emit("autopost")
+		this.emit("autopostStart")
 
 		const data = this.unpostedCustom
 		if (this.bot) {
@@ -56,6 +57,7 @@ class DisStat extends EventEmitter {
 
 		// TODO: Bandwidth usage
 
+		this.noManualWarningSent = true
 		let result = {}
 		try {
 			result = await this.postData(data)
@@ -84,6 +86,12 @@ class DisStat extends EventEmitter {
 	}
 
 	async postData(data = {}) {
+		if (this.autoposting && !this.noManualWarningSent) {
+			console.warn("[DisStat " + new Date().toLocaleTimeString() +
+				"] You are using autoposting, but you are still manually posting data. This is not recommended, as it can cause duplication and data loss due to overwriting.")
+			this.noManualWarningSent = true
+		}
+
 		if (!data || typeof data != "object" || Object.keys(data).length == 0) throw new TypeError("No data object provided to postData().")
 
 		const response = await fetch(baseURL + "bot/" + this.botId, {
@@ -94,42 +102,38 @@ class DisStat extends EventEmitter {
 				Authorization: this.apiKey
 			},
 			body: JSON.stringify(data)
+		}).catch(e => {
+			this.emit("post", false)
+			return e
 		})
-		if (!response.ok) return await response.json()
+		const json = await response.json()
+
+		this.emit("post", response.ok, json)
+		if (!response.ok) return json
 	}
 
 	async postCommand(command = "", userId = void 0, guildId = void 0) {
 		if (!command || command.trim() == "") return new TypeError("No command name provided to postCommand().")
+		this.postCustom("command", command, userId, guildId)
+	}
 
-		if (this.autoposting) this.unpostedCustom.push({
-			type: "command",
-			value1: command,
-			value2: userId,
-			value3: guildId
-		})
+	async postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
+		if (!type || type.trim() == "") return new TypeError("No custom graph type provided to postCustom().")
+
+		const body = {
+			type,
+			value1,
+			value2,
+			value3
+		}
+		if (this.autoposting) this.unpostedCustom.push(body)
 		else await fetch(baseURL + "bot/" + this.botId + "/custom", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: this.apiKey
 			},
-			body: JSON.stringify({
-				type: "command",
-				value1: command,
-				value2: userId,
-				value3: guildId
-			})
-		})
-	}
-
-	async postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
-		if (!type || type.trim() == "") return new TypeError("No custom graph type provided to postCustom().")
-
-		this.unpostedCustom.push({
-			type,
-			value1,
-			value2,
-			value3
+			body: JSON.stringify(body)
 		})
 	}
 }

@@ -17,8 +17,8 @@ const DisStat = require("disstat")
  * @param {string} apiKey - Your api key, found in your dashboard on https://disstat.pages.dev/me
  * @param {string|Discord.Client} bot - Your bot's user id OR a discord.js based bot client.
  *
- * If a client is provided, the package will automatically post server and user count to DisStat ("autoposting").
- * Note that the client has to be ready, so if you're using a client there, put this into it's ready event.
+ * If a client is provided, the package will automatically post server
+ * and user count to DisStat ("autoposting").
  */
 const disstat = new DisStat("DS-apikey123", "685166801394335819")
 const disstat = new DisStat("DS-apikey123", client)
@@ -45,7 +45,7 @@ console.log(newBotData)
 
 /*
  * Posts a command to DisStat using custom graphs.
- * You shouldn't post user generated commands like custom commands to protect user privacy.
+ * Don't post user generated commands like custom commands to protect user privacy.
  * You also should exclude the prefix and command arguments from the command.
  *
  * @param {string} command - The command to post
@@ -57,8 +57,10 @@ disstat.postCommand("help", "581146486646243339", "1081089799324180490")
 
 /*
  * Posts data for a custom graph to DisStat.
- * Note that using a not used type here creates the custom graph on DisStat if you have enough unused graph slots.
- * Don't use names like "servers" or "users" here, as they are reserved for the main graphs, and would get overwritten.
+ * Note that using a new type here creates the custom graph
+ * on DisStat if you have enough unused graph slots.
+ * Don't use names like "servers" or "users" here, as they are reserved
+ * for the main graphs, and would get overwritten.
  *
  * @param {string} type - The name of the custom graph to post to
  * @param {string|Number} value1? - First custom value (e.g. an event name like "interactionCreate")
@@ -72,8 +74,7 @@ if (message.content.includes("<@" + bot.user.id + ">")) {
 }
 ```
 
-# Events
-The client emits events for different things which you can react to.
+# Listening to events
 
 ```js
 const DisStat = require("disstat")
@@ -83,15 +84,21 @@ disstat.on("ready", () => {
 	console.log("DisStat is ready!")
 })
 
-disstat.on("autopost", () => {
-	console.log("Starting autoposting!")
+disstat.on("autopostStart", () => {
+	console.log("Starting autoposting...")
 	// Emits on every autopost, not once. Use "ready" or .once() for that.
 })
 disstat.on("autopostError", (error, data) => {
 	console.log("Autoposting failed: " + error, data)
 })
-disstat.on("autopostSuccess", () => {
-	console.log("Finished autoposting!")
+disstat.on("autopostSuccess", data => {
+	console.log("Finished posting this data:", data)
+})
+
+disstat.on("post", error => {
+	if (error) console.log("An error occurred while posting:", error)
+	else console.log("Posted data successfully!")
+	// This event also gets emitted on autoposting.
 })
 
 ```
