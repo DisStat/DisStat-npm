@@ -1,7 +1,7 @@
 const baseURL = "https://disstat-api.tomatenkuchen.com/v1/"
 const autopostInterval = 90000
 
-const EventEmitter = require("node:events")
+const { EventEmitter } = require("node:events")
 const os = require("node:os")
 
 class DisStat extends EventEmitter {
@@ -29,7 +29,7 @@ class DisStat extends EventEmitter {
 
 			this.autoposting = true
 			this.bot = botInput
-			setTimeout(this.autopost, 30000)
+			setTimeout(() => this.autopost(), 30000)
 		}
 
 		this.emit("ready")
@@ -38,7 +38,9 @@ class DisStat extends EventEmitter {
 	async autopost() {
 		this.emit("autopostStart")
 
-		const data = this.unpostedCustom
+		const data = {
+			custom: this.unpostedCustom
+		}
 		if (this.bot) {
 			data.guildCount = this.bot.guilds.cache.size
 			data.shardCount = this.bot.shard ? this.bot.shard.count : 0
@@ -65,11 +67,11 @@ class DisStat extends EventEmitter {
 			this.emit("autopostError", e, data)
 			console.warn("[DisStat " + new Date().toLocaleTimeString() + "] Failed to post data to DisStat API. Error: " + e.message, result)
 
-			setTimeout(this.autopost, autopostInterval / 2)
+			setTimeout(() => this.autopost(), autopostInterval)
 			return
 		}
 
-		setTimeout(this.autopost, autopostInterval)
+		setTimeout(() => this.autopost(), autopostInterval)
 		this.unpostedCustom = []
 
 		this.emit("autopostSuccess", data)
