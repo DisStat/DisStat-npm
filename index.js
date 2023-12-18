@@ -52,7 +52,7 @@ class DisStat extends EventEmitter {
 		const elapTimeMS = Date.now() - this.startTime
 		this.startUsage = process.cpuUsage()
 		this.startTime = Date.now()
-		data.cpu = 100 * elapTime / (1000 * elapTimeMS * os.cpus().length)
+		data.cpu = parseFloat((100 * elapTime / (1000 * elapTimeMS * os.cpus().length)).toFixed(2))
 
 		// TODO: Bandwidth usage
 
@@ -102,14 +102,14 @@ class DisStat extends EventEmitter {
 			},
 			body: JSON.stringify(data)
 		}).catch(e => {
-			this.emit("post", false)
+			this.emit("post", e, data)
 			return e
 		})
 
-		if (response.status == 204) this.emit("post", true)
+		if (response.status == 204) this.emit("post", void 0, data)
 		else {
 			const json = await response.json()
-			this.emit("post", response.ok, json)
+			this.emit("post", Object.keys(json).length == 0 ? void 0 : json, data)
 			return json
 		}
 	}
