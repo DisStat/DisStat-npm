@@ -44,8 +44,10 @@ class DisStat extends EventEmitter {
 			data.users = this.bot.guilds.cache.filter(guild => guild.available).reduce((acc, cur) => acc + cur.memberCount, 0)
 			data.apiPing = this.bot.ws.ping > 0 ? this.bot.ws.ping : void 0
 		}
-		data.ramUsage = process.memoryUsage.rss()
-		data.ramTotal = process.memoryUsage().heapTotal
+
+		const memory = process.memoryUsage()
+		data.ramUsage = memory.heapUsed
+		data.ramTotal = memory.heapTotal
 
 		const endUsage = process.cpuUsage()
 		const elapTime = endUsage.user - this.startUsage.user + endUsage.system - this.startUsage.system
@@ -61,7 +63,7 @@ class DisStat extends EventEmitter {
 		try {
 			result = await this.postData(data)
 		} catch (e) {
-			this.emit("autopostError", e, data)
+			this.emit("autopostError", result, data)
 			console.warn("[DisStat " + new Date().toLocaleTimeString() + "] Failed to post data to DisStat API. Error: " + e.message, result)
 
 			setTimeout(() => this.autopost(), autopostInterval)
