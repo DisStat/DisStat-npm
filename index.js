@@ -42,12 +42,9 @@ class DisStat extends EventEmitter {
 			data.guilds = this.bot.guilds.cache.size
 			data.shards = this.bot.shard ? this.bot.shard.count : 0
 			data.users = this.bot.guilds.cache.filter(guild => guild.available).reduce((acc, cur) => acc + cur.memberCount, 0)
-			data.apiPing = this.bot.ws.ping > 0 ? this.bot.ws.ping : void 0
+			data.apiPing = this.bot.ws && this.bot.ws.ping > 0 ? this.bot.ws.ping : null
 		}
-
-		const memory = process.memoryUsage()
-		data.ramUsage = memory.heapUsed
-		data.ramTotal = memory.heapTotal
+		data.ramUsage = process.memoryUsage.rss()
 
 		const endUsage = process.cpuUsage()
 		const elapTime = endUsage.user - this.startUsage.user + endUsage.system - this.startUsage.system
@@ -89,7 +86,7 @@ class DisStat extends EventEmitter {
 	async postData(data = {}) {
 		if (this.autoposting && !this.noManualWarningSent) {
 			console.warn("[DisStat " + new Date().toLocaleTimeString() +
-				"] You are using autoposting, but you are still manually posting data. This is not recommended, as it can cause duplication and data loss due to overwriting.")
+				"] You are using autoposting, but still manually posting data. This is not recommended, as it can cause duplication and data loss due to overwriting.")
 			this.noManualWarningSent = true
 		}
 
@@ -116,12 +113,12 @@ class DisStat extends EventEmitter {
 		}
 	}
 
-	async postCommand(command = "", userId = void 0, guildId = void 0) {
+	postCommand(command = "", userId = void 0, guildId = void 0) {
 		if (!command || command.trim() == "") return new TypeError("No command name provided to postCommand().")
 		this.postCustom("command", command, userId, guildId)
 	}
 
-	async postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
+	postCustom(type = "", value1 = void 0, value2 = void 0, value3 = void 0) {
 		if (!type || type.trim() == "") return new TypeError("No custom graph type provided to postCustom().")
 
 		const body = {
@@ -131,7 +128,7 @@ class DisStat extends EventEmitter {
 			value3
 		}
 		if (this.autoposting) this.unpostedCustom.push(body)
-		else await fetch(baseURL + "bot/" + this.botId + "/custom", {
+		else fetch(baseURL + "bot/" + this.botId + "/custom", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

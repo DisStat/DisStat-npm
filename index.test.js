@@ -36,24 +36,20 @@ test("postData with valid api key", async () => {
 
 test("postCommand empty", async () => {
 	const disstat = new DisStat("DS-jest", "jest")
-	const data = await disstat.postCommand()
-	expect(data).toBeInstanceOf(TypeError)
+	expect(disstat.postCommand()).toBeInstanceOf(TypeError)
 })
 
 test("postCommand with content", async () => {
 	const disstat = new DisStat("DS-jest", "jest")
-	const data = await disstat.postCommand("jest")
-	expect(data).toBeUndefined()
+	expect(disstat.postCommand("jest")).toBeUndefined()
 })
 
 test("postCustom empty", async () => {
 	const disstat = new DisStat("DS-jest", "jest")
-	const data = await disstat.postCustom()
-	expect(data).toBeInstanceOf(TypeError)
+	expect(disstat.postCustom()).toBeInstanceOf(TypeError)
 })
 
 test("postCustom with all four args", async () => {
 	const disstat = new DisStat("DS-jest", "jest")
-	const data = await disstat.postCustom("jest", "jest", "jest", "jest")
-	expect(data).toBeUndefined()
+	expect(disstat.postCustom("jest", "jest", "jest", "jest")).toBeUndefined()
 })

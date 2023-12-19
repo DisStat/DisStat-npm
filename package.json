@@ -1,6 +1,6 @@
 {
   "name": "disstat",
-  "version": "1.0.0-pre7",
+  "version": "1.0.0-pre8",
   "description": "Post data from a discord.js client automatically, or manually to DisStat for Discord bot statistic tracking.",
   "main": "index.js",
   "scripts": {
