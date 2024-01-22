@@ -35,13 +35,11 @@ console.log(botData)
  * Posts your bots data to DisStat.
  * Warning: You shouldn't use this when autoposting.
  *
- * @param {Object} data - The data to post:
- * @param {number} data.servers - The amount of servers your bot is in, e.g. client.guilds.cache.size
- * @param {number} data.users - The amount of users your bot can see, e.g. client.users.cache.size
- * @param {number} data.shards - The amount of shards your bot is using, e.g. client.shard.count
+ * @param {Object} data - The data to post
+ * @see https://disstat.pages.dev/docs
+ * @returns {Promise<Object>} - Only on error: The error object received from the API
  */
-const newBotData = await disstat.postData({ servers: 42, users: 100, shards: 1 })
-console.log(newBotData)
+disstat.postData({ guilds: 42, users: 100, shards: 1 })
 
 /*
  * Posts a command to DisStat using custom graphs.
@@ -59,8 +57,12 @@ disstat.postCommand("help", "581146486646243339", "1081089799324180490")
  * Posts data for a custom graph to DisStat.
  * Note that using a new type here creates the custom graph
  * on DisStat if you have enough unused graph slots.
+ *
  * Don't use names like "servers" or "users" here, as they are reserved
  * for the main graphs, and would get overwritten.
+ *
+ * "type" must not be longer than 50 characters.
+ * "value1", "value2" and "value3" must not be longer than 100 characters.
  *
  * @param {string} type - The name of the custom graph to post to
  * @param {string|Number} value1? - First custom value (e.g. an event name like "interactionCreate")
@@ -69,7 +71,8 @@ disstat.postCommand("help", "581146486646243339", "1081089799324180490")
  */
 disstat.postCustom("events", "interactionCreate")
 
-if (message.content.includes("<@" + bot.user.id + ">")) {
+if (message.content.includes("<@" + client.user.id + ">")) {
+	message.reply("My prefix is `!` 🤖")
 	disstat.postCustom("ping")
 }
 ```
@@ -80,10 +83,10 @@ if (message.content.includes("<@" + bot.user.id + ">")) {
 const DisStat = require("disstat")
 const disstat = new DisStat(...)
 
+// This event also gets emitted on autoposting.
 disstat.on("post", (error, data) => {
 	if (error) console.log("An error occurred while posting:", error, data)
 	else console.log("Posted data successfully:", data)
-	// This event also gets emitted on autoposting.
 })
 
 disstat.on("autopostStart", () => {
@@ -93,7 +96,6 @@ disstat.on("autopostError", (error, data) => {
 	console.log("Autopost failed: " + error, data)
 })
 disstat.on("autopostSuccess", data => {
-	console.log("Successfully posting data:", data)
+	console.log("Successfully posted data:", data)
 })
-
 ```
